@@ -1,0 +1,88 @@
+{
+  "networks": {
+    "testnet": "access.devnet.nodes.onflow.org:9000",
+    "mainnet": "access.mainnet.nodes.onflow.org:9000",
+    "emulator": "127.0.0.1:3569"
+  },
+  "accounts": {
+    "emulator-account": {
+      "address": "f8d6e0586b0a20c7",
+      "key": "5112883de06b9576af62b9aafa7ead685fb7fb46c495039b1a83649d61bff97c"
+    },
+    "testnet-account": {
+      "address": "0x01",
+      "key": "$TESTNET_PRIVATE_KEY"
+    },
+    "mainnet-account": {
+      "address": "0x01",
+      "key": "$MAINNET_PRIVATE_KEY"
+    }
+  },
+  "contracts": {
+    "FlowFitToken": {
+      "source": "./contracts/cadence/contracts/FlowFitToken.cdc",
+      "aliases": {
+        "testnet": "0x01",
+        "mainnet": "0x01"
+      }
+    },
+    "FitnessChallenge": {
+      "source": "./contracts/cadence/contracts/FitnessChallenge.cdc",
+      "aliases": {
+        "testnet": "0x01",
+        "mainnet": "0x01"
+      }
+    },
+    "AchievementNFT": {
+      "source": "./contracts/cadence/contracts/AchievementNFT.cdc",
+      "aliases": {
+        "testnet": "0x01",
+        "mainnet": "0x01"
+      }
+    },
+    "NonFungibleToken": {
+      "source": "./contracts/cadence/contracts/NonFungibleToken.cdc",
+      "aliases": {
+        "testnet": "0x631e88ae7f1d7c20",
+        "mainnet": "0x1d7e57aa55817448"
+      }
+    },
+    "MetadataViews": {
+      "source": "./contracts/cadence/contracts/MetadataViews.cdc",
+      "aliases": {
+        "testnet": "0x631e88ae7f1d7c20",
+        "mainnet": "0x1d7e57aa55817448"
+      }
+    },
+    "FungibleToken": {
+      "source": "./contracts/cadence/contracts/FungibleToken.cdc",
+      "aliases": {
+        "testnet": "0x9a0766d93b6608b7",
+        "mainnet": "0xf233dcee88fe0abe"
+      }
+    },
+    "RandomBeaconHistory": {
+      "source": "./contracts/cadence/contracts/RandomBeaconHistory.cdc",
+      "aliases": {
+        "testnet": "0x8c5303eaa26202d6",
+        "mainnet": "0x8c5303eaa26202d6"
+      }
+    }
+  },
+  "deployments": {
+    "testnet": {
+      "testnet-account": [
+        "FlowFitToken",
+        "FitnessChallenge", 
+        "AchievementNFT"
+      ]
+    },
+    "mainnet": {
+      "mainnet-account": [
+        "FlowFitToken",
+        "FitnessChallenge",
+        "AchievementNFT"
+      ]
+    }
+  }
+} 
