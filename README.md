@@ -279,4 +279,253 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ on Flow Blockchain**
 
-*FlowFit: Where Fitness Meets the Future* 
+*FlowFit: Where Fitness Meets the Future*
+
+### 💰 Wallet Connection & Integration
+
+FlowFit provides a seamless wallet connection experience with multiple Flow-compatible wallets:
+
+#### Supported Wallets
+- **Blocto** (Recommended) - Easy email-based wallet with social login
+- **Lilico** (Popular) - Mobile-first Flow wallet with great UX
+- **Dapper** - Gaming-focused wallet with NFT support
+- **Finoa** - Enterprise-grade security for institutions
+- **Ledger** - Hardware wallet for maximum security
+
+#### Key Features
+- 🔄 **One-Click Connection** - Connect instantly with your preferred wallet
+- 🔐 **Multi-Wallet Support** - Switch between different wallet providers
+- 🌐 **Account Linking** - Link Google/Discord for social recovery
+- ⚡ **Gasless Transactions** - All interactions are sponsored (zero fees)
+- 📱 **Mobile Optimized** - Seamless experience on all devices
+- 🔄 **Auto-Reconnection** - Persistent sessions with error recovery
+- 📊 **Real-Time Balance** - Live FFT token balance updates
+- 🎨 **Beautiful UI** - Cosmic-themed interface with smooth animations
+
+#### Wallet Connection States
+- ✅ Connected - Active wallet session
+- 🔄 Connecting - Establishing connection
+- ❌ Error - Connection failed (with retry option)
+- 🔄 Reconnecting - Automatic recovery attempt
+
+#### Account Management
+- **Address Display** - Formatted wallet address (0x1234...5678)
+- **Copy Address** - One-click address copying with toast confirmation
+- **Balance Tracking** - Real-time FFT token balance
+- **Explorer Links** - Direct links to Flow blockchain explorer
+- **Account Details** - Expandable view with network info
+- **Safe Disconnect** - Secure wallet disconnection
+
+### 🎮 Gamified Fitness Features
+
+- **VRF-Powered Challenges** - Fair, random daily workouts using Flow's RandomBeaconHistory
+- **Dynamic NFT Achievements** - Evolving NFTs that level up with your progress
+- **Token Rewards** - Earn FFT tokens for completing challenges
+- **Streak Bonuses** - Multipliers for consecutive workout days
+- **Real-World Redemption** - Use tokens for gym memberships and gear
+
+### 🔗 Flow-Native Integration
+
+- **Sponsored Transactions** - Zero gas fees for all user interactions
+- **Account Linking** - Social recovery with Google/Discord integration
+- **Resource-Oriented Programming** - Safe Cadence smart contracts
+- **MetadataViews** - Rich NFT and token metadata
+
+## 🛠 Technical Implementation
+
+### Wallet Provider (`FlowProvider.tsx`)
+```typescript
+// Enhanced Flow provider with comprehensive wallet features
+const { 
+  user,              // Current user state
+  connectionState,   // Connection status
+  logIn,            // Connect wallet function
+  logOut,           // Disconnect wallet function
+  sendTransaction,  // Send blockchain transactions
+  getBalance,       // Get token balance
+  copyAddress,      // Copy address utility
+  formatAddress     // Format address display
+} = useFlow()
+```
+
+### Wallet Connection Component (`WalletConnection.tsx`)
+- Modal-based wallet selection
+- Multiple wallet provider support
+- Connection state management
+- Error handling and recovery
+- Account information display
+- Transaction status tracking
+
+### Usage Example
+```tsx
+import { useFlow } from '@/components/providers/FlowProvider'
+import WalletConnection from '@/components/WalletConnection'
+
+function MyComponent() {
+  const { user, logIn } = useFlow()
+  const [showWallet, setShowWallet] = useState(false)
+
+  return (
+    <>
+      <button onClick={() => setShowWallet(true)}>
+        {user.loggedIn ? 'Account' : 'Connect Wallet'}
+      </button>
+      
+      <WalletConnection 
+        isOpen={showWallet}
+        onClose={() => setShowWallet(false)}
+        mode={user.loggedIn ? 'account' : 'connect'}
+      />
+    </>
+  )
+}
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Flow CLI (for contract deployment)
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/your-username/flowfit.git
+cd flowfit
+
+# Install dependencies
+npm install
+
+# Install frontend dependencies
+cd frontend && npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Add your WalletConnect Project ID to .env.local
+```
+
+### Environment Variables
+```bash
+# frontend/.env.local
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id_here
+```
+
+### Development
+```bash
+# Start the frontend
+cd frontend && npm run dev
+
+# Deploy contracts (in another terminal)
+flow deploy --network testnet
+```
+
+### Wallet Integration Testing
+
+1. **Start Development Server**
+   ```bash
+   cd frontend && npm run dev
+   ```
+
+2. **Test Wallet Connection**
+   - Click "Connect Wallet" button
+   - Select a wallet provider (Blocto recommended for testing)
+   - Complete the authentication flow
+   - Verify connection state and balance display
+
+3. **Test Features**
+   - View account information
+   - Copy wallet address
+   - Test gasless transactions
+   - Try social account linking
+   - Test disconnect functionality
+
+## 📦 Project Structure
+
+```
+flow-blockchain/
+├── contracts/cadence/contracts/   # Flow smart contracts
+│   ├── FlowFitToken.cdc          # FFT token contract
+│   ├── FitnessChallenge.cdc      # Challenge contract
+│   └── AchievementNFT.cdc        # NFT contract
+├── frontend/                     # Next.js frontend
+│   ├── src/components/
+│   │   ├── providers/
+│   │   │   └── FlowProvider.tsx  # Enhanced Flow provider
+│   │   └── WalletConnection.tsx  # Wallet modal component
+│   └── src/app/
+│       ├── page.tsx             # Main landing page
+│       └── layout.tsx           # App layout with toaster
+└── flow.json                    # Flow configuration
+```
+
+## 🎨 UI/UX Features
+
+### Design System
+- **Cosmic Theme** - Space-inspired design with neon colors
+- **Glassmorphism** - Modern glass-effect cards and modals
+- **Smooth Animations** - Framer Motion powered transitions
+- **Responsive Design** - Mobile-first responsive layout
+- **Toast Notifications** - Real-time feedback for all actions
+
+### Color Palette
+- Primary: Cyan (#06b6d4) to Purple (#8b5cf6)
+- Success: Green (#22c55e)
+- Warning: Yellow (#eab308)
+- Error: Red (#ef4444)
+- Background: Dark gradient with cosmic particles
+
+## 🔧 Customization
+
+### Adding New Wallets
+```typescript
+// Add to walletOptions array in WalletConnection.tsx
+{
+  type: WalletType.YOUR_WALLET,
+  name: 'Your Wallet',
+  icon: <YourIcon className="w-8 h-8" />,
+  description: 'Description of your wallet',
+  color: 'from-color-400 to-color-600'
+}
+```
+
+### Custom Toast Styling
+```typescript
+// Customize in layout.tsx
+<Toaster
+  toastOptions={{
+    style: {
+      background: 'your-color',
+      color: 'your-text-color',
+      // ... other styles
+    }
+  }}
+/>
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Implement your wallet enhancement
+4. Test thoroughly with different wallets
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 🌟 Acknowledgments
+
+- Flow blockchain team for excellent developer tools
+- Blocto, Dapper, and other wallet providers
+- Next.js and React ecosystem
+- Framer Motion for animations
+
+---
+
+**Ready to revolutionize fitness with blockchain?** 🚀
+
+Start earning crypto for your workouts today! The future of fitness is gasless, fair, and rewarding.
+
+[**Connect Your Wallet & Start Training →**](https://flowfit.io) 

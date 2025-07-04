@@ -7,14 +7,14 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FlowFit - Gamified Fitness with Crypto Rewards',
-  description: 'The first verifiable fitness protocol on Flow that rewards users with tokens and NFTs for completing VRF-generated workout challenges.',
-  keywords: ['fitness', 'blockchain', 'flow', 'gamification', 'crypto', 'rewards', 'NFT', 'VRF'],
+  title: 'FlowFit - Gamified Fitness Protocol',
+  description: 'The first gasless fitness protocol on Flow blockchain that rewards your workouts with crypto and evolving NFTs',
+  keywords: 'fitness, blockchain, crypto, NFT, Flow, gamification, rewards',
   authors: [{ name: 'FlowFit Team' }],
   metadataBase: new URL('https://flowfit.io'),
   openGraph: {
-    title: 'FlowFit - Gamified Fitness with Crypto Rewards',
-    description: 'Earn tokens and NFTs for completing workout challenges. Built on Flow blockchain.',
+    title: 'FlowFit - Gamified Fitness Protocol',
+    description: 'Earn crypto and NFTs by completing fitness challenges on Flow blockchain',
     url: 'https://flowfit.io',
     siteName: 'FlowFit',
     images: [
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'FlowFit - Gamified Fitness',
+        alt: 'FlowFit - Gamified Fitness Protocol',
       },
     ],
     locale: 'en_US',
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FlowFit - Gamified Fitness with Crypto Rewards',
-    description: 'Earn tokens and NFTs for completing workout challenges. Built on Flow blockchain.',
+    title: 'FlowFit - Gamified Fitness Protocol',
+    description: 'Earn crypto and NFTs by completing fitness challenges',
     images: ['/og-image.png'],
   },
   robots: {
@@ -52,44 +52,55 @@ export default function RootLayout({
           <div className="min-h-screen">
             {children}
           </div>
-          <Toaster 
+          <Toaster
             position="top-right"
+            reverseOrder={false}
             gutter={8}
+            containerClassName=""
+            containerStyle={{}}
             toastOptions={{
+              className: '',
               duration: 4000,
               style: {
-                background: 'rgba(0, 0, 0, 0.8)',
-                color: '#ffffff',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                borderRadius: '16px',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                background: 'rgba(17, 24, 39, 0.95)',
+                color: '#fff',
+                border: '1px solid rgba(34, 197, 94, 0.2)',
+                borderRadius: '12px',
+                backdropFilter: 'blur(16px)',
+                fontSize: '14px',
+                fontWeight: '500',
               },
               success: {
-                iconTheme: {
-                  primary: '#00ff88',
-                  secondary: '#ffffff',
-                },
+                duration: 3000,
                 style: {
-                  border: '1px solid rgba(0, 255, 136, 0.3)',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  background: 'rgba(17, 24, 39, 0.95)',
+                },
+                iconTheme: {
+                  primary: '#22c55e',
+                  secondary: '#111827',
                 },
               },
               error: {
-                iconTheme: {
-                  primary: '#ff006e',
-                  secondary: '#ffffff',
-                },
+                duration: 4000,
                 style: {
-                  border: '1px solid rgba(255, 0, 110, 0.3)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  background: 'rgba(17, 24, 39, 0.95)',
+                },
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#111827',
                 },
               },
               loading: {
-                iconTheme: {
-                  primary: '#00d4ff',
-                  secondary: '#ffffff',
-                },
+                duration: Infinity,
                 style: {
-                  border: '1px solid rgba(0, 212, 255, 0.3)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  background: 'rgba(17, 24, 39, 0.95)',
+                },
+                iconTheme: {
+                  primary: '#3b82f6',
+                  secondary: '#111827',
                 },
               },
             }}

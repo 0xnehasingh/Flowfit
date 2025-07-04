@@ -24,5 +24,9 @@
     "files": [
       "static/chunks/_app-pages-browser_node_modules_viem_node_modules_noble_curves_esm_secp256k1_js.js"
     ]
+  },
+  "app/page.tsx -> react-hot-toast": {
+    "id": "app/page.tsx -> react-hot-toast",
+    "files": []
   }
 }
