@@ -139,13 +139,6 @@ export default function FlowProvider({ children }: FlowProviderProps) {
       setIsConnecting(false)
     })
     
-    // Check for existing session
-    const currentUser = fcl.currentUser()
-    if (currentUser.loggedIn) {
-      setConnectionState(ConnectionState.CONNECTED)
-    }
-    setLoading(false)
-    
     return () => unsubscribe()
   }, [])
 
@@ -358,7 +351,7 @@ export default function FlowProvider({ children }: FlowProviderProps) {
             }
           }
         `,
-        args: () => [fcl.arg(user.addr, t.Address)]
+        args: () => [fcl.arg(user.addr as string, t.Address)]
       })
       return account
     } catch (error) {
