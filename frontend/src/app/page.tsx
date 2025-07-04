@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Play, Zap, Trophy, Users, Coins, Star, ChevronRight, Activity, Sparkles, Flame, Target, Award } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Play, Zap, Trophy, Users, Coins, Star, ChevronRight, Activity, Sparkles, Flame, Target, Award, Wallet, Settings, Timer, CheckCircle, Crown, Gift, Calendar, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { useFlow } from '@/components/providers/FlowProvider'
+import WalletConnection from '@/components/WalletConnection'
 
 interface Challenge {
   description: string
@@ -12,6 +13,8 @@ interface Challenge {
   baseReward: number
   challengeType: string
   difficulty: string
+  timeLimit?: number
+  bonusReward?: number
 }
 
 interface UserStats {
@@ -23,8 +26,17 @@ interface UserStats {
   experiencePoints: number
 }
 
+interface Achievement {
+  id: string
+  title: string
+  description: string
+  icon: React.ReactNode
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+  reward: number
+}
+
 const FlowFitLanding = () => {
-  const { user, logIn, logOut, loading, createAccount, linkAccount, isAccountLinked, sendTransaction, executeScript } = useFlow()
+  const { user, logIn, logOut, loading, createAccount, linkAccount, isAccountLinked, sendTransaction, executeScript, formatAddress } = useFlow()
   const [isClient, setIsClient] = useState(false)
   const [todaysChallenge, setTodaysChallenge] = useState<[number, Challenge] | null>(null)
   const [userStats, setUserStats] = useState<UserStats | null>(null)
@@ -33,6 +45,19 @@ const FlowFitLanding = () => {
   const [isStartingChallenge, setIsStartingChallenge] = useState(false)
   const [isSubmittingProgress, setIsSubmittingProgress] = useState(false)
   const [activeFeature, setActiveFeature] = useState(0)
+  
+  // Enhanced challenge states
+  const [challengeStarted, setChallengeStarted] = useState(false)
+  const [challengeStartTime, setChallengeStartTime] = useState<Date | null>(null)
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+  const [showAchievement, setShowAchievement] = useState(false)
+  const [newAchievements, setNewAchievements] = useState<Achievement[]>([])
+  const [streakBonus, setStreakBonus] = useState(0)
+  const [perfectForm, setPerfectForm] = useState(false)
+  
+  // Wallet connection modal states
+  const [showWalletModal, setShowWalletModal] = useState(false)
+  const [walletModalMode, setWalletModalMode] = useState<'connect' | 'account'>('connect')
 
   useEffect(() => {
     setIsClient(true)
@@ -51,6 +76,27 @@ const FlowFitLanding = () => {
     }
   }, [user.loggedIn])
 
+  // Timer effect for active challenges
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (challengeStarted && challengeStartTime && timeRemaining && timeRemaining > 0) {
+      interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - challengeStartTime.getTime()) / 1000)
+        const remaining = Math.max(0, (todaysChallenge?.[1]?.timeLimit || 0) - elapsed)
+        setTimeRemaining(remaining)
+        
+        if (remaining === 0) {
+          setChallengeStarted(false)
+          // Auto-submit progress if time runs out
+          if (challengeProgress > 0) {
+            handleSubmitProgress()
+          }
+        }
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [challengeStarted, challengeStartTime, timeRemaining, challengeProgress])
+
   const loadUserData = async () => {
     try {
       // Simulate loading with proper typing
@@ -63,7 +109,9 @@ const FlowFitLanding = () => {
         targetValue: 50,
         baseReward: 100,
         challengeType: "Strength",
-        difficulty: "Intermediate"
+        difficulty: "Intermediate",
+        timeLimit: 600, // 10 minutes
+        bonusReward: 25
       }])
       setUserStats({
         totalChallengesCompleted: 42,
@@ -73,6 +121,10 @@ const FlowFitLanding = () => {
         level: 8,
         experiencePoints: 2340
       })
+      
+      // Calculate streak bonus
+      const currentStreak = 7
+      setStreakBonus(Math.min(currentStreak * 5, 50)) // Max 50% bonus
     } catch (error) {
       console.error('Error loading user data:', error)
     }
@@ -83,9 +135,21 @@ const FlowFitLanding = () => {
     
     setIsStartingChallenge(true)
     try {
-      // Simulate transaction
+      // Start the challenge
+      setChallengeStarted(true)
+      setChallengeStartTime(new Date())
+      setTimeRemaining(todaysChallenge?.[1]?.timeLimit || 600)
+      
+      // Simulate blockchain transaction to start challenge
       await new Promise(resolve => setTimeout(resolve, 2000))
-      await loadUserData()
+      
+      // Show success message
+      const toast = await import('react-hot-toast')
+      toast.default.success('Challenge started! Get ready to crush it! 🔥', {
+        duration: 3000,
+        icon: '🚀'
+      })
+      
     } catch (error) {
       console.error('Error starting challenge:', error)
     } finally {
@@ -98,10 +162,81 @@ const FlowFitLanding = () => {
     
     setIsSubmittingProgress(true)
     try {
+      // Calculate rewards and achievements
+      const completionPercentage = (challengeProgress / (todaysChallenge?.[1]?.targetValue || 1)) * 100
+      const baseReward = todaysChallenge?.[1]?.baseReward || 0
+      const bonusReward = streakBonus > 0 ? Math.floor(baseReward * (streakBonus / 100)) : 0
+      const perfectFormBonus = perfectForm ? 20 : 0
+      const totalReward = baseReward + bonusReward + perfectFormBonus
+      
       // Simulate transaction
       await new Promise(resolve => setTimeout(resolve, 2000))
-      await loadUserData()
+      
+      // Check for achievements
+      const achievements: Achievement[] = []
+      
+      if (completionPercentage >= 100) {
+        achievements.push({
+          id: 'challenge_complete',
+          title: 'Challenge Crusher',
+          description: 'Completed daily challenge!',
+          icon: <Trophy className="w-6 h-6" />,
+          rarity: 'common',
+          reward: 25
+        })
+      }
+      
+      if (perfectForm) {
+        achievements.push({
+          id: 'perfect_form',
+          title: 'Form Master',
+          description: 'Perfect form execution!',
+          icon: <Star className="w-6 h-6" />,
+          rarity: 'rare',
+          reward: 50
+        })
+      }
+      
+      if (userStats && userStats.currentStreak >= 7) {
+        achievements.push({
+          id: 'week_warrior',
+          title: 'Week Warrior',
+          description: '7-day streak achieved!',
+                     icon: <Flame className="w-6 h-6" />,
+          rarity: 'epic',
+          reward: 100
+        })
+      }
+      
+      // Update balance
+      const currentBalance = parseInt(tokenBalance.replace(',', ''))
+      setTokenBalance((currentBalance + totalReward).toLocaleString())
+      
+      // Show achievements
+      if (achievements.length > 0) {
+        setNewAchievements(achievements)
+        setShowAchievement(true)
+      }
+      
+      // Reset challenge state
+      setChallengeStarted(false)
       setChallengeProgress(0)
+      
+      // Update user stats
+      if (userStats) {
+        setUserStats({
+          ...userStats,
+          totalChallengesCompleted: userStats.totalChallengesCompleted + 1,
+          totalTokensEarned: userStats.totalTokensEarned + totalReward,
+          experiencePoints: userStats.experiencePoints + Math.floor(totalReward / 2)
+        })
+      }
+      
+      const toast = await import('react-hot-toast')
+      toast.default.success(`🎉 Progress submitted! Earned ${totalReward} FFT tokens!`, {
+        duration: 4000
+      })
+      
     } catch (error) {
       console.error('Error submitting progress:', error)
     } finally {
@@ -115,6 +250,30 @@ const FlowFitLanding = () => {
     } catch (error) {
       console.error('Error linking account:', error)
     }
+  }
+
+  // Enhanced wallet connection handlers
+  const handleConnectWallet = () => {
+    setWalletModalMode('connect')
+    setShowWalletModal(true)
+  }
+
+  const handleAccountClick = () => {
+    setWalletModalMode('account')
+    setShowWalletModal(true)
+  }
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const getProgressColor = (percentage: number): string => {
+    if (percentage >= 100) return 'from-green-400 to-emerald-500'
+    if (percentage >= 75) return 'from-yellow-400 to-orange-500'
+    if (percentage >= 50) return 'from-cyan-400 to-blue-500'
+    return 'from-purple-400 to-pink-500'
   }
 
   const features = [
@@ -205,19 +364,28 @@ const FlowFitLanding = () => {
                   </div>
                 </div>
                 <button
-                  onClick={logOut}
-                  className="secondary-button !py-2 !px-4"
+                  onClick={handleAccountClick}
+                  className="glass-card !p-3 hover:scale-105 transition-all duration-200 flex items-center space-x-2"
                 >
-                  Disconnect
+                  <Wallet className="w-5 h-5 text-cyan-400" />
+                  <span className="font-semibold">{formatAddress(user.addr)}</span>
+                </button>
+                <button
+                  onClick={handleAccountClick}
+                  className="secondary-button !py-2 !px-4 flex items-center space-x-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Account</span>
                 </button>
               </div>
             ) : (
               <button
-                onClick={logIn}
-                className="morphing-button"
+                onClick={handleConnectWallet}
+                className="morphing-button flex items-center space-x-2"
                 disabled={loading}
               >
-                {loading ? 'Connecting...' : 'Connect Wallet'}
+                <Wallet className="w-5 h-5" />
+                <span>{loading ? 'Connecting...' : 'Connect Wallet'}</span>
               </button>
             )}
           </div>
@@ -260,7 +428,7 @@ const FlowFitLanding = () => {
                   className="flex flex-col sm:flex-row gap-6 justify-center items-center"
                 >
                   <button
-                    onClick={logIn}
+                    onClick={handleConnectWallet}
                     className="morphing-button text-xl py-6 px-12"
                   >
                     <span className="flex items-center space-x-3">
@@ -348,6 +516,19 @@ const FlowFitLanding = () => {
                 <p className="text-gray-300 text-lg">
                   Ready to crush today's VRF-powered challenge and earn some FFT?
                 </p>
+                
+                {/* Streak Bonus Banner */}
+                {streakBonus > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="mt-4 inline-flex items-center space-x-2 bg-gradient-to-r from-orange-400 to-red-500 
+                             text-white px-4 py-2 rounded-full font-bold"
+                  >
+                                         <Flame className="w-5 h-5" />
+                     <span>🔥 {streakBonus}% Streak Bonus Active!</span>
+                  </motion.div>
+                )}
               </div>
 
               {/* Account Linking Alert */}
@@ -391,11 +572,22 @@ const FlowFitLanding = () => {
               <div className="grid lg:grid-cols-2 gap-8">
                 {/* Today's Challenge */}
                 <div className="glass-card space-y-6">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center">
-                      <Target className="w-6 h-6 text-white" />
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center">
+                        <Target className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-3xl font-bold gradient-text">Today's VRF Challenge</h3>
                     </div>
-                    <h3 className="text-3xl font-bold gradient-text">Today's VRF Challenge</h3>
+                    
+                    {/* Timer Display */}
+                    {challengeStarted && timeRemaining !== null && (
+                      <div className="flex items-center space-x-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 
+                                   border border-red-500/30 rounded-xl px-4 py-2">
+                        <Timer className="w-5 h-5 text-red-400" />
+                        <span className="font-bold text-red-400">{formatTime(timeRemaining)}</span>
+                      </div>
+                    )}
                   </div>
                   
                   {todaysChallenge ? (
@@ -404,22 +596,34 @@ const FlowFitLanding = () => {
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <span className="text-cyan-400 font-semibold text-lg">Challenge:</span>
-                            <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-semibold">
-                              {todaysChallenge[1]?.difficulty}
-                            </span>
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-semibold">
+                                {todaysChallenge[1]?.difficulty}
+                              </span>
+                              {challengeStarted && (
+                                <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
+                                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                  <span>Active</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <p className="text-white text-xl font-medium">
                             {todaysChallenge[1]?.description}
                           </p>
                           
-                          <div className="grid grid-cols-2 gap-4 pt-4">
+                          <div className="grid grid-cols-3 gap-4 pt-4">
                             <div className="text-center">
                               <div className="text-2xl font-bold text-purple-400">{todaysChallenge[1]?.targetValue}</div>
-                              <div className="text-gray-400">Target Reps</div>
+                              <div className="text-gray-400 text-sm">Target Reps</div>
                             </div>
                             <div className="text-center">
                               <div className="text-2xl font-bold text-green-400">{todaysChallenge[1]?.baseReward}</div>
-                              <div className="text-gray-400">FFT Reward</div>
+                              <div className="text-gray-400 text-sm">Base FFT</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-orange-400">+{streakBonus}%</div>
+                              <div className="text-gray-400 text-sm">Streak Bonus</div>
                             </div>
                           </div>
                         </div>
@@ -427,15 +631,32 @@ const FlowFitLanding = () => {
                       
                       {/* Progress Input */}
                       <div className="space-y-4">
-                        <label className="block text-lg font-semibold text-white">
-                          Enter Your Progress
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="block text-lg font-semibold text-white">
+                            Enter Your Progress
+                          </label>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => setPerfectForm(!perfectForm)}
+                              className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-semibold transition-all ${
+                                perfectForm 
+                                  ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                                  : 'bg-gray-700/50 text-gray-400 border border-gray-600'
+                              }`}
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              <span>Perfect Form</span>
+                            </button>
+                          </div>
+                        </div>
+                        
                         <input
                           type="number"
                           value={challengeProgress}
                           onChange={(e) => setChallengeProgress(Number(e.target.value))}
                           placeholder="How many did you complete?"
                           className="w-full bg-gray-800/50 text-white px-6 py-4 rounded-2xl border border-gray-600 focus:border-cyan-400 focus:outline-none text-lg font-medium"
+                          disabled={!challengeStarted}
                         />
                         
                         {/* Progress Bar */}
@@ -447,46 +668,61 @@ const FlowFitLanding = () => {
                                 {Math.min(100, (challengeProgress / (todaysChallenge[1]?.targetValue || 1)) * 100).toFixed(0)}%
                               </span>
                             </div>
-                            <div 
-                              className="energy-progress" 
-                              style={{
-                                '--progress': `${Math.min(100, (challengeProgress / (todaysChallenge[1]?.targetValue || 1)) * 100)}%`
-                              } as React.CSSProperties}
-                            ></div>
+                            <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ 
+                                  width: `${Math.min(100, (challengeProgress / (todaysChallenge[1]?.targetValue || 1)) * 100)}%` 
+                                }}
+                                className={`h-full bg-gradient-to-r ${getProgressColor((challengeProgress / (todaysChallenge[1]?.targetValue || 1)) * 100)} 
+                                          relative overflow-hidden`}
+                              >
+                                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                              </motion.div>
+                            </div>
                           </div>
                         )}
                       </div>
                       
                       {/* Action Buttons */}
                       <div className="flex space-x-4">
-                        <button
-                          onClick={handleStartChallenge}
-                          disabled={isStartingChallenge}
-                          className="flex-1 morphing-button !py-4"
-                        >
-                          {isStartingChallenge ? (
-                            <span className="flex items-center justify-center space-x-2">
-                              <div className="cosmic-loader !w-5 !h-5"></div>
-                              <span>Starting...</span>
-                            </span>
-                          ) : (
-                            'Start Challenge'
-                          )}
-                        </button>
-                        <button
-                          onClick={handleSubmitProgress}
-                          disabled={isSubmittingProgress || challengeProgress <= 0}
-                          className="flex-1 secondary-button !py-4 disabled:opacity-50"
-                        >
-                          {isSubmittingProgress ? (
-                            <span className="flex items-center justify-center space-x-2">
-                              <div className="cosmic-loader !w-5 !h-5"></div>
-                              <span>Submitting...</span>
-                            </span>
-                          ) : (
-                            'Submit Progress'
-                          )}
-                        </button>
+                        {!challengeStarted ? (
+                          <button
+                            onClick={handleStartChallenge}
+                            disabled={isStartingChallenge}
+                            className="flex-1 morphing-button !py-4"
+                          >
+                            {isStartingChallenge ? (
+                              <span className="flex items-center justify-center space-x-2">
+                                <div className="cosmic-loader !w-5 !h-5"></div>
+                                <span>Starting...</span>
+                              </span>
+                            ) : (
+                              <span className="flex items-center justify-center space-x-2">
+                                <Play className="w-5 h-5" />
+                                <span>Start Challenge</span>
+                              </span>
+                            )}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleSubmitProgress}
+                            disabled={isSubmittingProgress || challengeProgress <= 0}
+                            className="flex-1 morphing-button !py-4 disabled:opacity-50"
+                          >
+                            {isSubmittingProgress ? (
+                              <span className="flex items-center justify-center space-x-2">
+                                <div className="cosmic-loader !w-5 !h-5"></div>
+                                <span>Submitting...</span>
+                              </span>
+                            ) : (
+                              <span className="flex items-center justify-center space-x-2">
+                                <CheckCircle className="w-5 h-5" />
+                                <span>Submit Progress ({challengeProgress} reps)</span>
+                              </span>
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -512,7 +748,10 @@ const FlowFitLanding = () => {
                       <div className="neo-card !p-6">
                         <div className="flex items-center justify-between mb-4">
                           <div>
-                            <div className="text-2xl font-bold text-white">Level {userStats.level}</div>
+                            <div className="text-2xl font-bold text-white flex items-center space-x-2">
+                              <span>Level {userStats.level}</span>
+                              {userStats.level >= 5 && <Crown className="w-6 h-6 text-yellow-400" />}
+                            </div>
                             <div className="text-gray-400">Fitness Champion</div>
                           </div>
                           <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-600 rounded-full flex items-center justify-center">
@@ -526,40 +765,58 @@ const FlowFitLanding = () => {
                               {userStats.experiencePoints} / {(userStats.level + 1) * 500} XP
                             </span>
                           </div>
-                          <div 
-                            className="energy-progress" 
-                            style={{
-                              '--progress': `${(userStats.experiencePoints / ((userStats.level + 1) * 500)) * 100}%`
-                            } as React.CSSProperties}
-                          ></div>
+                          <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ 
+                                width: `${(userStats.experiencePoints / ((userStats.level + 1) * 500)) * 100}%` 
+                              }}
+                              className="h-full bg-gradient-to-r from-purple-400 to-pink-600 relative overflow-hidden"
+                            >
+                              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                            </motion.div>
+                          </div>
                         </div>
                       </div>
 
                       {/* Stats Grid */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="neo-card !p-4 text-center">
-                          <div className="text-3xl font-bold text-cyan-400 mb-1">{userStats.totalChallengesCompleted}</div>
+                          <div className="text-3xl font-bold text-cyan-400 mb-1 flex items-center justify-center space-x-2">
+                            <span>{userStats.totalChallengesCompleted}</span>
+                            <Trophy className="w-6 h-6" />
+                          </div>
                           <div className="text-gray-300 text-sm">Challenges</div>
                         </div>
                         <div className="neo-card !p-4 text-center">
-                          <div className="text-3xl font-bold text-purple-400 mb-1">{userStats.currentStreak}</div>
+                                                     <div className="text-3xl font-bold text-purple-400 mb-1 flex items-center justify-center space-x-2">
+                             <span>{userStats.currentStreak}</span>
+                             <Flame className="w-6 h-6" />
+                           </div>
                           <div className="text-gray-300 text-sm">Day Streak</div>
                         </div>
                         <div className="neo-card !p-4 text-center">
-                          <div className="text-3xl font-bold text-green-400 mb-1">{userStats.totalTokensEarned.toLocaleString()}</div>
+                          <div className="text-3xl font-bold text-green-400 mb-1 flex items-center justify-center space-x-2">
+                            <span>{userStats.totalTokensEarned.toLocaleString()}</span>
+                            <Coins className="w-6 h-6" />
+                          </div>
                           <div className="text-gray-300 text-sm">FFT Earned</div>
                         </div>
                         <div className="neo-card !p-4 text-center">
-                          <div className="text-3xl font-bold text-orange-400 mb-1">{userStats.longestStreak}</div>
+                          <div className="text-3xl font-bold text-orange-400 mb-1 flex items-center justify-center space-x-2">
+                            <span>{userStats.longestStreak}</span>
+                            <Calendar className="w-6 h-6" />
+                          </div>
                           <div className="text-gray-300 text-sm">Best Streak</div>
                         </div>
                       </div>
                       
                       <button
                         onClick={createAccount}
-                        className="w-full morphing-button !py-4 text-lg"
+                        className="w-full morphing-button !py-4 text-lg flex items-center justify-center space-x-2"
                       >
-                        Setup FlowFit Account
+                        <Gift className="w-6 h-6" />
+                        <span>Setup FlowFit Account</span>
                       </button>
                     </div>
                   ) : (
@@ -574,6 +831,76 @@ const FlowFitLanding = () => {
           )}
         </div>
       </main>
+
+      {/* Achievement Modal */}
+      <AnimatePresence>
+        {showAchievement && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => setShowAchievement(false)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 50 }}
+              className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 mx-4 max-w-md w-full
+                       border border-cyan-400/30 shadow-2xl shadow-cyan-400/20"
+            >
+              <div className="text-center space-y-6">
+                <div className="relative">
+                  <div className="w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full 
+                                flex items-center justify-center mx-auto mb-4">
+                    <Trophy className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-400 to-pink-500 
+                                text-white text-xs px-2 py-1 rounded-full font-bold">
+                    NEW!
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-3xl font-bold gradient-text mb-2">🎉 Achievement Unlocked!</h3>
+                  <div className="space-y-3">
+                    {newAchievements.map((achievement, index) => (
+                      <div key={achievement.id} className="bg-gray-800/50 rounded-xl p-4">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="text-yellow-400">{achievement.icon}</div>
+                          <div>
+                            <h4 className="font-bold text-white">{achievement.title}</h4>
+                            <p className="text-gray-300 text-sm">{achievement.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-green-400 font-bold">+{achievement.reward} FFT</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => setShowAchievement(false)}
+                  className="morphing-button w-full py-3"
+                >
+                  Awesome! 🚀
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Wallet Connection Modal */}
+      <WalletConnection
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        mode={walletModalMode}
+      />
     </div>
   )
 }
