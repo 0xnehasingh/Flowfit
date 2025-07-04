@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, Zap, Trophy, Users, Coins, Star, ChevronRight, Activity, Sparkles, Flame, Target, Award, Wallet, Settings, Timer, CheckCircle, Crown, Gift, Calendar, Clock } from 'lucide-react'
+import { Play, Zap, Trophy, Users, Coins, Star, ChevronRight, Activity, Sparkles, Flame, Target, Award, Wallet, Settings, Timer, CheckCircle, Crown, Gift, Calendar, Clock, Medal, Diamond, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { useFlow } from '@/components/providers/FlowProvider'
 import WalletConnection from '@/components/WalletConnection'
 import TokenRewards from '@/components/TokenRewards'
+import DynamicNFT from '@/components/DynamicNFT'
 
 interface Challenge {
   description: string
@@ -532,6 +533,93 @@ const FlowFitLanding = () => {
                 </div>
               </div>
 
+              {/* Dynamic NFT Achievements Feature */}
+              <div className="neo-card !p-8 text-center">
+                <div className="mb-8">
+                  <div className="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-600 rounded-3xl 
+                               flex items-center justify-center mx-auto mb-6">
+                    <Trophy className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">
+                    EVOLVING DIGITAL ASSETS
+                  </div>
+                  <h2 className="text-4xl font-bold gradient-text mb-4">Dynamic NFT Achievements</h2>
+                  <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+                    Unlock evolving NFTs that level up with your fitness progress
+                  </p>
+                </div>
+                
+                <div className="grid md:grid-cols-5 gap-4 mb-8">
+                  <div className="bg-gray-800/50 rounded-2xl p-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-600 rounded-xl 
+                                 flex items-center justify-center mx-auto mb-4">
+                      <Award className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Bronze</h3>
+                    <p className="text-gray-400 text-sm mb-2">Starting tier</p>
+                    <div className="text-xl font-bold text-orange-400">+10%</div>
+                  </div>
+                  
+                  <div className="bg-gray-800/50 rounded-2xl p-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-gray-200 to-gray-400 rounded-xl 
+                                 flex items-center justify-center mx-auto mb-4">
+                      <Medal className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Silver</h3>
+                    <p className="text-gray-400 text-sm mb-2">Level 8+</p>
+                    <div className="text-xl font-bold text-gray-300">+25%</div>
+                  </div>
+                  
+                  <div className="bg-gray-800/50 rounded-2xl p-6 ring-2 ring-yellow-400/30">
+                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl 
+                                 flex items-center justify-center mx-auto mb-4">
+                      <Trophy className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Gold</h3>
+                    <p className="text-gray-400 text-sm mb-2">Level 15+</p>
+                    <div className="text-xl font-bold text-yellow-400">+50%</div>
+                  </div>
+                  
+                  <div className="bg-gray-800/50 rounded-2xl p-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-gray-300 to-gray-500 rounded-xl 
+                                 flex items-center justify-center mx-auto mb-4">
+                      <Crown className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Platinum</h3>
+                    <p className="text-gray-400 text-sm mb-2">Level 25+</p>
+                    <div className="text-xl font-bold text-gray-300">+100%</div>
+                  </div>
+                  
+                  <div className="bg-gray-800/50 rounded-2xl p-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl 
+                                 flex items-center justify-center mx-auto mb-4">
+                      <Diamond className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Diamond</h3>
+                    <p className="text-gray-400 text-sm mb-2">Level 50+</p>
+                    <div className="text-xl font-bold text-cyan-400">+150%</div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap justify-center gap-4">
+                  <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-400/10 to-pink-600/10 
+                               border border-purple-400/20 rounded-xl px-4 py-2">
+                    <Sparkles className="w-4 h-4 text-purple-400" />
+                    <span className="text-purple-400 font-semibold text-sm">Dynamic Traits</span>
+                  </div>
+                  <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-400/10 to-blue-600/10 
+                               border border-cyan-400/20 rounded-xl px-4 py-2">
+                    <TrendingUp className="w-4 h-4 text-cyan-400" />
+                    <span className="text-cyan-400 font-semibold text-sm">Auto Evolution</span>
+                  </div>
+                  <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-400/10 to-orange-500/10 
+                               border border-yellow-400/20 rounded-xl px-4 py-2">
+                    <Zap className="w-4 h-4 text-yellow-400" />
+                    <span className="text-yellow-400 font-semibold text-sm">Bonus Multipliers</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Animated Stats */}
               <div className="neo-card">
                 <div className="text-center mb-12">
@@ -625,7 +713,7 @@ const FlowFitLanding = () => {
               )}
 
               {/* Main Dashboard Grid */}
-              <div className="grid lg:grid-cols-3 gap-8">
+              <div className="grid lg:grid-cols-2 gap-8">
                 {/* Today's Challenge */}
                 <div className="glass-card space-y-6">
                   <div className="flex items-center justify-between mb-6">
@@ -883,6 +971,10 @@ const FlowFitLanding = () => {
                   )}
                 </div>
 
+              </div>
+
+              {/* Token Rewards and NFT Section */}
+              <div className="grid lg:grid-cols-2 gap-8 mt-8">
                 {/* Token Rewards Panel */}
                 <div className="glass-card space-y-6">
                   <TokenRewards
@@ -894,6 +986,17 @@ const FlowFitLanding = () => {
                     perfectForm={perfectForm}
                     onRewardCalculated={(calculation) => {
                       console.log('Reward calculation:', calculation)
+                    }}
+                  />
+                </div>
+
+                {/* Dynamic NFT Panel */}
+                <div className="glass-card space-y-6">
+                  <DynamicNFT
+                    userStats={userStats}
+                    onNFTEvolution={(nft) => {
+                      console.log('NFT evolved:', nft)
+                      // Could trigger celebrations or update UI
                     }}
                   />
                 </div>
