@@ -6,6 +6,7 @@ import { Play, Zap, Trophy, Users, Coins, Star, ChevronRight, Activity, Sparkles
 import Link from 'next/link'
 import { useFlow } from '@/components/providers/FlowProvider'
 import WalletConnection from '@/components/WalletConnection'
+import TokenRewards from '@/components/TokenRewards'
 
 interface Challenge {
   description: string
@@ -476,6 +477,61 @@ const FlowFitLanding = () => {
                 ))}
               </div>
 
+              {/* Real Crypto Rewards Feature Highlight */}
+              <div className="neo-card !p-8 text-center">
+                <div className="mb-8">
+                  <div className="w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-3xl 
+                               flex items-center justify-center mx-auto mb-6">
+                    <Coins className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-2">
+                    REAL CRYPTO REWARDS
+                  </div>
+                  <h2 className="text-4xl font-bold gradient-text mb-4">Earn FlowFit Tokens</h2>
+                  <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+                    Get rewarded with FFT tokens for completing workouts and maintaining streaks
+                  </p>
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-gray-800/50 rounded-2xl p-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-xl 
+                                 flex items-center justify-center mx-auto mb-4">
+                      <Target className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Challenge Rewards</h3>
+                    <p className="text-gray-400 mb-3">Earn 100+ FFT for completing daily challenges</p>
+                    <div className="text-2xl font-bold text-cyan-400">100 FFT</div>
+                  </div>
+                  
+                  <div className="bg-gray-800/50 rounded-2xl p-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl 
+                                 flex items-center justify-center mx-auto mb-4">
+                      <Flame className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Streak Bonuses</h3>
+                    <p className="text-gray-400 mb-3">Get up to 50% bonus for maintaining streaks</p>
+                    <div className="text-2xl font-bold text-orange-400">+50%</div>
+                  </div>
+                  
+                  <div className="bg-gray-800/50 rounded-2xl p-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-500 rounded-xl 
+                                 flex items-center justify-center mx-auto mb-4">
+                      <Star className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Perfect Form</h3>
+                    <p className="text-gray-400 mb-3">Extra rewards for maintaining perfect form</p>
+                    <div className="text-2xl font-bold text-green-400">+20%</div>
+                  </div>
+                </div>
+                
+                <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-cyan-400/10 to-purple-600/10 
+                             border border-cyan-400/20 rounded-2xl px-6 py-3">
+                  <Zap className="w-5 h-5 text-cyan-400" />
+                  <span className="text-cyan-400 font-semibold">Gasless transactions - No fees ever!</span>
+                </div>
+              </div>
+
               {/* Animated Stats */}
               <div className="neo-card">
                 <div className="text-center mb-12">
@@ -569,7 +625,7 @@ const FlowFitLanding = () => {
               )}
 
               {/* Main Dashboard Grid */}
-              <div className="grid lg:grid-cols-2 gap-8">
+              <div className="grid lg:grid-cols-3 gap-8">
                 {/* Today's Challenge */}
                 <div className="glass-card space-y-6">
                   <div className="flex items-center justify-between mb-6">
@@ -825,6 +881,21 @@ const FlowFitLanding = () => {
                       <div className="text-gray-400 text-lg">Loading your stats...</div>
                     </div>
                   )}
+                </div>
+
+                {/* Token Rewards Panel */}
+                <div className="glass-card space-y-6">
+                  <TokenRewards
+                    challengeProgress={challengeProgress}
+                    targetValue={todaysChallenge?.[1]?.targetValue || 50}
+                    baseReward={todaysChallenge?.[1]?.baseReward || 100}
+                    currentStreak={userStats?.currentStreak || 7}
+                    userLevel={userStats?.level || 8}
+                    perfectForm={perfectForm}
+                    onRewardCalculated={(calculation) => {
+                      console.log('Reward calculation:', calculation)
+                    }}
+                  />
                 </div>
               </div>
             </div>
