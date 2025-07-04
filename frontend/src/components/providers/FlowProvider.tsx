@@ -185,7 +185,7 @@ export default function FlowProvider({ children }: FlowProviderProps) {
     try {
       const txId = await fcl.mutate({
         cadence: code,
-        args,
+        args: () => args,
         proposer: fcl.authz,
         payer: fcl.authz, // In production, this would be sponsored
         authorizations: [fcl.authz],
@@ -204,7 +204,7 @@ export default function FlowProvider({ children }: FlowProviderProps) {
     try {
       const result = await fcl.query({
         cadence: code,
-        args
+        args: () => args
       })
       return result
     } catch (error) {

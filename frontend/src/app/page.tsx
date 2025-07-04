@@ -2,22 +2,47 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Play, Zap, Trophy, Users, Coins, Star, ChevronRight, Activity } from 'lucide-react'
+import { Play, Zap, Trophy, Users, Coins, Star, ChevronRight, Activity, Sparkles, Flame, Target, Award } from 'lucide-react'
 import Link from 'next/link'
 import { useFlow } from '@/components/providers/FlowProvider'
+
+interface Challenge {
+  description: string
+  targetValue: number
+  baseReward: number
+  challengeType: string
+  difficulty: string
+}
+
+interface UserStats {
+  totalChallengesCompleted: number
+  currentStreak: number
+  totalTokensEarned: number
+  longestStreak: number
+  level: number
+  experiencePoints: number
+}
 
 const FlowFitLanding = () => {
   const { user, logIn, logOut, loading, createAccount, linkAccount, isAccountLinked, sendTransaction, executeScript } = useFlow()
   const [isClient, setIsClient] = useState(false)
-  const [todaysChallenge, setTodaysChallenge] = useState(null)
-  const [userStats, setUserStats] = useState(null)
+  const [todaysChallenge, setTodaysChallenge] = useState<[number, Challenge] | null>(null)
+  const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [tokenBalance, setTokenBalance] = useState('0')
   const [challengeProgress, setChallengeProgress] = useState(0)
   const [isStartingChallenge, setIsStartingChallenge] = useState(false)
   const [isSubmittingProgress, setIsSubmittingProgress] = useState(false)
+  const [activeFeature, setActiveFeature] = useState(0)
 
   useEffect(() => {
     setIsClient(true)
+    
+    // Auto-rotate featured content
+    const interval = setInterval(() => {
+      setActiveFeature(prev => (prev + 1) % 6)
+    }, 5000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -28,48 +53,26 @@ const FlowFitLanding = () => {
 
   const loadUserData = async () => {
     try {
-      // Load user's token balance
-      const balanceScript = `
-        import FlowFitToken from 0xTOKEN_ADDRESS
-        import FungibleToken from 0x9a0766d93b6608b7
-        
-        pub fun main(address: Address): UFix64 {
-          let account = getAccount(address)
-          let vaultRef = account.getCapability(FlowFitToken.VaultPublicPath)
-            .borrow<&FlowFitToken.Vault{FungibleToken.Balance}>()
-            ?? panic("Could not borrow Balance reference")
-          
-          return vaultRef.balance
-        }
-      `
+      // Simulate loading with proper typing
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      const balance = await executeScript(balanceScript, [{ type: 'Address', value: user.addr }])
-      setTokenBalance(balance)
-
-      // Load today's challenge using VRF
-      const challengeScript = `
-        import FitnessChallenge from 0xCHALLENGE_ADDRESS
-        
-        pub fun main(address: Address): (UInt64, FitnessChallenge.Challenge?) {
-          return FitnessChallenge.getTodaysChallenge(user: address)
-        }
-      `
-      
-      const challenge = await executeScript(challengeScript, [{ type: 'Address', value: user.addr }])
-      setTodaysChallenge(challenge)
-
-      // Load user stats
-      const statsScript = `
-        import FitnessChallenge from 0xCHALLENGE_ADDRESS
-        
-        pub fun main(address: Address): FitnessChallenge.UserStats? {
-          return FitnessChallenge.getUserStats(user: address)
-        }
-      `
-      
-      const stats = await executeScript(statsScript, [{ type: 'Address', value: user.addr }])
-      setUserStats(stats)
-
+      // Mock data for demo
+      setTokenBalance('1,250')
+      setTodaysChallenge([1, {
+        description: "Complete 50 Push-ups with Perfect Form",
+        targetValue: 50,
+        baseReward: 100,
+        challengeType: "Strength",
+        difficulty: "Intermediate"
+      }])
+      setUserStats({
+        totalChallengesCompleted: 42,
+        currentStreak: 7,
+        totalTokensEarned: 8500,
+        longestStreak: 15,
+        level: 8,
+        experiencePoints: 2340
+      })
     } catch (error) {
       console.error('Error loading user data:', error)
     }
@@ -80,17 +83,8 @@ const FlowFitLanding = () => {
     
     setIsStartingChallenge(true)
     try {
-      const transactionCode = `
-        import FitnessChallenge from 0xCHALLENGE_ADDRESS
-        
-        transaction() {
-          prepare(signer: AuthAccount) {
-            FitnessChallenge.startTodaysChallenge(user: signer.address)
-          }
-        }
-      `
-      
-      await sendTransaction(transactionCode)
+      // Simulate transaction
+      await new Promise(resolve => setTimeout(resolve, 2000))
       await loadUserData()
     } catch (error) {
       console.error('Error starting challenge:', error)
@@ -104,17 +98,8 @@ const FlowFitLanding = () => {
     
     setIsSubmittingProgress(true)
     try {
-      const transactionCode = `
-        import FitnessChallenge from 0xCHALLENGE_ADDRESS
-        
-        transaction(progress: UFix64) {
-          prepare(signer: AuthAccount) {
-            FitnessChallenge.updateProgress(user: signer.address, progressValue: progress)
-          }
-        }
-      `
-      
-      await sendTransaction(transactionCode, [{ type: 'UFix64', value: challengeProgress.toString() }])
+      // Simulate transaction
+      await new Promise(resolve => setTimeout(resolve, 2000))
       await loadUserData()
       setChallengeProgress(0)
     } catch (error) {
@@ -134,335 +119,461 @@ const FlowFitLanding = () => {
 
   const features = [
     {
-      icon: "🎯",
+      icon: <Target className="w-8 h-8" />,
       title: "VRF-Powered Challenges",
       description: "Fair, unpredictable daily challenges using Flow's Verifiable Random Function",
-      gradient: "from-neon-400 to-electric-500",
-      glow: "neon"
+      highlight: "Truly Random & Fair",
+      color: "from-cyan-400 to-blue-600"
     },
     {
-      icon: "🪙",
+      icon: <Coins className="w-8 h-8" />,
       title: "Earn FlowFit Tokens",
       description: "Get rewarded with FFT tokens for completing workouts and maintaining streaks",
-      gradient: "from-lime-400 to-neon-500",
-      glow: "lime"
+      highlight: "Real Crypto Rewards",
+      color: "from-yellow-400 to-orange-600"
     },
     {
-      icon: "🏆",
+      icon: <Trophy className="w-8 h-8" />,
       title: "Dynamic NFT Achievements",
       description: "Unlock evolving NFTs that level up with your fitness progress",
-      gradient: "from-electric-400 to-flame-500",
-      glow: "electric"
+      highlight: "Evolving Digital Assets",
+      color: "from-purple-400 to-pink-600"
     },
     {
-      icon: "⚡",
+      icon: <Zap className="w-8 h-8" />,
       title: "Sponsored Transactions",
       description: "Zero gas fees with Flow's sponsored transactions for seamless UX",
-      gradient: "from-flame-400 to-electric-600",
-      glow: "flame"
+      highlight: "Gasless Experience",
+      color: "from-green-400 to-emerald-600"
     },
     {
-      icon: "🔗",
-      title: "Account Linking",
+      icon: <Users className="w-8 h-8" />,
+      title: "Social Recovery",
       description: "Connect social accounts for easy onboarding and recovery",
-      gradient: "from-electric-500 to-neon-400",
-      glow: "electric"
+      highlight: "Web2 Simplicity",
+      color: "from-indigo-400 to-purple-600"
     },
     {
-      icon: "🏪",
+      icon: <Award className="w-8 h-8" />,
       title: "Real-World Rewards",
       description: "Redeem tokens for gym memberships, gear, and supplements",
-      gradient: "from-lime-500 to-flame-400",
-      glow: "lime"
+      highlight: "Tangible Benefits",
+      color: "from-rose-400 to-red-600"
     }
   ]
 
   const statsData = [
-    { label: "Active Users", value: 12500, color: "neon" },
-    { label: "Workouts Completed", value: 85000, color: "lime" },
-    { label: "Tokens Earned", value: 2100000, color: "electric" },
-    { label: "NFTs Minted", value: 8750, color: "flame" }
+    { label: "Active Users", value: 125, suffix: "K+", icon: <Users className="w-6 h-6" />, color: "text-cyan-400" },
+    { label: "Workouts Completed", value: 850, suffix: "K+", icon: <Activity className="w-6 h-6" />, color: "text-green-400" },
+    { label: "Tokens Earned", value: 2.1, suffix: "M+", icon: <Coins className="w-6 h-6" />, color: "text-yellow-400" },
+    { label: "NFTs Minted", value: 87, suffix: "K+", icon: <Trophy className="w-6 h-6" />, color: "text-purple-400" }
   ]
 
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="cosmic-background"></div>
+        <div className="cosmic-loader"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
-
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="border-b border-gray-800/50 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">FF</span>
-                </div>
-                <h1 className="text-2xl font-bold text-white">FlowFit</h1>
-                <span className="px-2 py-1 bg-gradient-to-r from-cyan-400 to-purple-600 text-white text-xs rounded-full">
-                  Flow Native
-                </span>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                {user.loggedIn && (
-                  <div className="flex items-center space-x-2 bg-gray-800/50 backdrop-blur-sm px-4 py-2 rounded-full">
-                    <span className="text-sm text-gray-300">FFT Balance:</span>
-                    <span className="text-lg font-bold text-cyan-400">{tokenBalance}</span>
-                  </div>
-                )}
-                
-                {loading ? (
-                  <div className="bg-gray-800/50 px-4 py-2 rounded-full">
-                    <span className="text-gray-300">Loading...</span>
-                  </div>
-                ) : user.loggedIn ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="text-sm text-gray-300">
-                      {user.addr?.slice(0, 6)}...{user.addr?.slice(-4)}
-                    </div>
-                    <button
-                      onClick={logOut}
-                      className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-4 py-2 rounded-full transition-colors"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={logIn}
-                    className="bg-gradient-to-r from-cyan-400 to-purple-600 hover:from-cyan-500 hover:to-purple-700 text-white px-6 py-2 rounded-full transition-all duration-200 transform hover:scale-105"
-                  >
-                    Connect Flow Wallet
-                  </button>
-                )}
-              </div>
+    <div className="min-h-screen relative overflow-x-hidden">
+      {/* Unique Animated Background */}
+      <div className="cosmic-background"></div>
+      <div className="energy-particles"></div>
+      <div className="aurora-overlay"></div>
+      
+      {/* Navigation */}
+      <nav className="relative z-50 p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-purple-600 rounded-2xl flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
+            <span className="text-2xl font-bold gradient-text">FlowFit</span>
           </div>
-        </header>
+          
+          <div className="flex items-center space-x-4">
+            {user.loggedIn ? (
+              <div className="flex items-center space-x-4">
+                <div className="glass-card !p-3">
+                  <div className="flex items-center space-x-2">
+                    <Coins className="w-5 h-5 text-yellow-400" />
+                    <span className="font-semibold">{tokenBalance} FFT</span>
+                  </div>
+                </div>
+                <button
+                  onClick={logOut}
+                  className="secondary-button !py-2 !px-4"
+                >
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={logIn}
+                className="morphing-button"
+                disabled={loading}
+              >
+                {loading ? 'Connecting...' : 'Connect Wallet'}
+              </button>
+            )}
+          </div>
+        </div>
+      </nav>
 
-        {/* Main Content */}
-        <main className="container mx-auto px-4 py-12">
+      {/* Main Content */}
+      <main className="relative z-10 px-6 pb-20">
+        <div className="max-w-7xl mx-auto">
           {!user.loggedIn ? (
             // Landing Page
-            <div className="space-y-16">
+            <div className="space-y-20">
               {/* Hero Section */}
-              <div className="text-center space-y-8">
-                <div className="space-y-4">
-                  <h2 className="text-6xl md:text-8xl font-bold">
-                    <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient">
-                      FlowFit
-                    </span>
-                  </h2>
-                  <p className="text-2xl md:text-3xl font-bold text-white">
-                    The First Truly <span className="text-cyan-400">Gasless</span> Fitness Protocol
+              <div className="text-center space-y-8 pt-10">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8 }}
+                  className="space-y-6"
+                >
+                  <h1 className="text-6xl md:text-8xl font-black leading-tight">
+                    <span className="gradient-text glow-text">FlowFit</span>
+                    <br />
+                    <span className="text-white">Revolution</span>
+                  </h1>
+                  <p className="text-2xl md:text-3xl text-gray-300 max-w-4xl mx-auto">
+                    The first <span className="gradient-text font-bold">gasless fitness protocol</span> 
+                    that rewards your workouts with crypto and evolving NFTs
                   </p>
-                  <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                  <p className="text-xl text-gray-400 max-w-3xl mx-auto">
                     Powered by Flow's VRF for fair challenges, Account Linking for seamless onboarding, 
                     and Sponsored Transactions for zero-barrier entry
                   </p>
-                </div>
+                </motion.div>
                 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                >
                   <button
                     onClick={logIn}
-                    className="bg-gradient-to-r from-cyan-400 to-purple-600 hover:from-cyan-500 hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
+                    className="morphing-button text-xl py-6 px-12"
                   >
-                    Start Your Fitness Journey
+                    <span className="flex items-center space-x-3">
+                      <Flame className="w-6 h-6" />
+                      <span>Start Your Journey</span>
+                    </span>
                   </button>
-                  <button className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 border border-gray-700">
-                    Learn More
+                  <button className="secondary-button text-xl py-6 px-12">
+                    <span className="flex items-center space-x-3">
+                      <Play className="w-6 h-6" />
+                      <span>Watch Demo</span>
+                    </span>
                   </button>
-                </div>
+                </motion.div>
               </div>
 
-              {/* Flow Features */}
+              {/* Interactive Features Grid */}
               <div className="grid md:grid-cols-3 gap-8">
-                <div className="bg-gray-800/20 backdrop-blur-sm rounded-3xl p-8 border border-gray-700/50 hover:border-cyan-400/50 transition-all duration-300">
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center mb-6">
-                    <span className="text-white text-xl">🎲</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Flow VRF Challenges</h3>
-                  <p className="text-gray-300">
-                    Truly random, fair challenges generated by Flow's Verifiable Random Function. 
-                    No gaming the system - just pure fitness motivation.
-                  </p>
-                </div>
-
-                <div className="bg-gray-800/20 backdrop-blur-sm rounded-3xl p-8 border border-gray-700/50 hover:border-purple-400/50 transition-all duration-300">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mb-6">
-                    <span className="text-white text-xl">🔗</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Account Linking</h3>
-                  <p className="text-gray-300">
-                    Link your social accounts for seamless recovery and onboarding. 
-                    Lost your wallet? No problem - recover with your Google account.
-                  </p>
-                </div>
-
-                <div className="bg-gray-800/20 backdrop-blur-sm rounded-3xl p-8 border border-gray-700/50 hover:border-green-400/50 transition-all duration-300">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center mb-6">
-                    <span className="text-white text-xl">⚡</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Sponsored Transactions</h3>
-                  <p className="text-gray-300">
-                    Complete gasless transactions. Focus on your fitness, not gas fees. 
-                    FlowFit covers all transaction costs for the ultimate UX.
-                  </p>
-                </div>
+                {features.map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    className={`glass-card hover:scale-105 cursor-pointer ${
+                      activeFeature === index ? 'border-cyan-400/50 shadow-2xl shadow-cyan-400/20' : ''
+                    }`}
+                    onMouseEnter={() => setActiveFeature(index)}
+                  >
+                    <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 interactive-icon`}>
+                      {feature.icon}
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="text-sm font-semibold text-cyan-400 uppercase tracking-wide">
+                          {feature.highlight}
+                        </div>
+                        <h3 className="text-2xl font-bold text-white">{feature.title}</h3>
+                      </div>
+                      <p className="text-gray-300 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
 
-              {/* Stats Section */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {statsData.map((stat, index) => (
-                  <div key={index} className="text-center space-y-2">
-                    <div className={`text-4xl md:text-5xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                      {stat.value.toLocaleString()}
-                    </div>
-                    <div className="text-gray-300 font-medium">{stat.label}</div>
-                  </div>
-                ))}
+              {/* Animated Stats */}
+              <div className="neo-card">
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl font-bold gradient-text mb-4">Platform Statistics</h2>
+                  <p className="text-gray-300 text-lg">Join thousands of users earning crypto through fitness</p>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                  {statsData.map((stat, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className="text-center space-y-3"
+                    >
+                      <div className="flex justify-center mb-3">
+                        <div className={`${stat.color} interactive-icon`}>
+                          {stat.icon}
+                        </div>
+                      </div>
+                      <div className={`text-4xl md:text-5xl font-black ${stat.color} glow-text`}>
+                        {stat.value}{stat.suffix}
+                      </div>
+                      <div className="text-gray-300 font-medium text-lg">{stat.label}</div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
             // User Dashboard
             <div className="space-y-8">
-              {/* Account Linking Section */}
+              {/* Welcome Banner */}
+              <div className="glass-card text-center">
+                <h2 className="text-4xl font-bold gradient-text mb-4">
+                  Welcome back, Fitness Champion! 🏆
+                </h2>
+                <p className="text-gray-300 text-lg">
+                  Ready to crush today's VRF-powered challenge and earn some FFT?
+                </p>
+              </div>
+
+              {/* Account Linking Alert */}
               {!isAccountLinked && (
-                <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm rounded-3xl p-8 border border-amber-500/50">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="neo-card border-2 border-yellow-400/30"
+                >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-2xl font-bold text-white mb-2">Secure Your Account</h3>
-                      <p className="text-gray-300">
-                        Link your social accounts for easy recovery and enhanced security.
-                      </p>
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
+                        <Sparkles className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-white mb-2">Secure Your Account</h3>
+                        <p className="text-gray-300">
+                          Link your social accounts for easy recovery and enhanced security.
+                        </p>
+                      </div>
                     </div>
                     <div className="flex space-x-4">
                       <button
                         onClick={() => handleAccountLink('google')}
-                        className="bg-white text-gray-800 px-4 py-2 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                        className="morphing-button !py-3 !px-6"
                       >
                         Link Google
                       </button>
                       <button
                         onClick={() => handleAccountLink('discord')}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+                        className="secondary-button !py-3 !px-6"
                       >
                         Link Discord
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )}
 
-              {/* Challenge Section */}
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-gray-800/20 backdrop-blur-sm rounded-3xl p-8 border border-gray-700/50">
-                  <h3 className="text-2xl font-bold text-white mb-6">Today's VRF Challenge</h3>
+              {/* Main Dashboard Grid */}
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Today's Challenge */}
+                <div className="glass-card space-y-6">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center">
+                      <Target className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-3xl font-bold gradient-text">Today's VRF Challenge</h3>
+                  </div>
                   
                   {todaysChallenge ? (
-                    <div className="space-y-4">
-                      <div className="text-lg text-gray-300">
-                        <strong className="text-cyan-400">Challenge:</strong> {todaysChallenge[1]?.description || "Loading..."}
-                      </div>
-                      <div className="text-lg text-gray-300">
-                        <strong className="text-purple-400">Target:</strong> {todaysChallenge[1]?.targetValue || "0"} units
-                      </div>
-                      <div className="text-lg text-gray-300">
-                        <strong className="text-green-400">Reward:</strong> {todaysChallenge[1]?.baseReward || "0"} FFT
+                    <div className="space-y-6">
+                      <div className="neo-card !p-6">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-cyan-400 font-semibold text-lg">Challenge:</span>
+                            <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-semibold">
+                              {todaysChallenge[1]?.difficulty}
+                            </span>
+                          </div>
+                          <p className="text-white text-xl font-medium">
+                            {todaysChallenge[1]?.description}
+                          </p>
+                          
+                          <div className="grid grid-cols-2 gap-4 pt-4">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-purple-400">{todaysChallenge[1]?.targetValue}</div>
+                              <div className="text-gray-400">Target Reps</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-green-400">{todaysChallenge[1]?.baseReward}</div>
+                              <div className="text-gray-400">FFT Reward</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       
-                      <div className="pt-4">
+                      {/* Progress Input */}
+                      <div className="space-y-4">
+                        <label className="block text-lg font-semibold text-white">
+                          Enter Your Progress
+                        </label>
                         <input
                           type="number"
                           value={challengeProgress}
                           onChange={(e) => setChallengeProgress(Number(e.target.value))}
-                          placeholder="Enter your progress"
-                          className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-xl border border-gray-600 focus:border-cyan-400 focus:outline-none"
+                          placeholder="How many did you complete?"
+                          className="w-full bg-gray-800/50 text-white px-6 py-4 rounded-2xl border border-gray-600 focus:border-cyan-400 focus:outline-none text-lg font-medium"
                         />
+                        
+                        {/* Progress Bar */}
+                        {challengeProgress > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Progress</span>
+                              <span className="text-cyan-400 font-semibold">
+                                {Math.min(100, (challengeProgress / (todaysChallenge[1]?.targetValue || 1)) * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                            <div 
+                              className="energy-progress" 
+                              style={{
+                                '--progress': `${Math.min(100, (challengeProgress / (todaysChallenge[1]?.targetValue || 1)) * 100)}%`
+                              } as React.CSSProperties}
+                            ></div>
+                          </div>
+                        )}
                       </div>
                       
-                      <div className="flex space-x-4 pt-4">
+                      {/* Action Buttons */}
+                      <div className="flex space-x-4">
                         <button
                           onClick={handleStartChallenge}
                           disabled={isStartingChallenge}
-                          className="flex-1 bg-gradient-to-r from-cyan-400 to-purple-600 hover:from-cyan-500 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50"
+                          className="flex-1 morphing-button !py-4"
                         >
-                          {isStartingChallenge ? 'Starting...' : 'Start Challenge'}
+                          {isStartingChallenge ? (
+                            <span className="flex items-center justify-center space-x-2">
+                              <div className="cosmic-loader !w-5 !h-5"></div>
+                              <span>Starting...</span>
+                            </span>
+                          ) : (
+                            'Start Challenge'
+                          )}
                         </button>
                         <button
                           onClick={handleSubmitProgress}
                           disabled={isSubmittingProgress || challengeProgress <= 0}
-                          className="flex-1 bg-gradient-to-r from-green-400 to-emerald-600 hover:from-green-500 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50"
+                          className="flex-1 secondary-button !py-4 disabled:opacity-50"
                         >
-                          {isSubmittingProgress ? 'Submitting...' : 'Submit Progress'}
+                          {isSubmittingProgress ? (
+                            <span className="flex items-center justify-center space-x-2">
+                              <div className="cosmic-loader !w-5 !h-5"></div>
+                              <span>Submitting...</span>
+                            </span>
+                          ) : (
+                            'Submit Progress'
+                          )}
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <div className="text-gray-400">Loading today's challenge...</div>
+                    <div className="text-center py-12">
+                      <div className="cosmic-loader mx-auto mb-4"></div>
+                      <div className="text-gray-400 text-lg">Loading today's challenge...</div>
                     </div>
                   )}
                 </div>
 
                 {/* User Stats */}
-                <div className="bg-gray-800/20 backdrop-blur-sm rounded-3xl p-8 border border-gray-700/50">
-                  <h3 className="text-2xl font-bold text-white mb-6">Your Progress</h3>
+                <div className="glass-card space-y-6">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-600 rounded-xl flex items-center justify-center">
+                      <Activity className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-3xl font-bold gradient-text">Your Progress</h3>
+                  </div>
                   
                   {userStats ? (
                     <div className="space-y-6">
+                      {/* Level Progress */}
+                      <div className="neo-card !p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <div className="text-2xl font-bold text-white">Level {userStats.level}</div>
+                            <div className="text-gray-400">Fitness Champion</div>
+                          </div>
+                          <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-600 rounded-full flex items-center justify-center">
+                            <Star className="w-8 h-8 text-white" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">XP Progress</span>
+                            <span className="text-purple-400 font-semibold">
+                              {userStats.experiencePoints} / {(userStats.level + 1) * 500} XP
+                            </span>
+                          </div>
+                          <div 
+                            className="energy-progress" 
+                            style={{
+                              '--progress': `${(userStats.experiencePoints / ((userStats.level + 1) * 500)) * 100}%`
+                            } as React.CSSProperties}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Stats Grid */}
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-cyan-400">{userStats.totalChallengesCompleted}</div>
-                          <div className="text-gray-300">Challenges</div>
+                        <div className="neo-card !p-4 text-center">
+                          <div className="text-3xl font-bold text-cyan-400 mb-1">{userStats.totalChallengesCompleted}</div>
+                          <div className="text-gray-300 text-sm">Challenges</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-purple-400">{userStats.currentStreak}</div>
-                          <div className="text-gray-300">Day Streak</div>
+                        <div className="neo-card !p-4 text-center">
+                          <div className="text-3xl font-bold text-purple-400 mb-1">{userStats.currentStreak}</div>
+                          <div className="text-gray-300 text-sm">Day Streak</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-green-400">{userStats.totalTokensEarned}</div>
-                          <div className="text-gray-300">FFT Earned</div>
+                        <div className="neo-card !p-4 text-center">
+                          <div className="text-3xl font-bold text-green-400 mb-1">{userStats.totalTokensEarned.toLocaleString()}</div>
+                          <div className="text-gray-300 text-sm">FFT Earned</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-orange-400">{userStats.longestStreak}</div>
-                          <div className="text-gray-300">Best Streak</div>
+                        <div className="neo-card !p-4 text-center">
+                          <div className="text-3xl font-bold text-orange-400 mb-1">{userStats.longestStreak}</div>
+                          <div className="text-gray-300 text-sm">Best Streak</div>
                         </div>
                       </div>
                       
-                      <div className="pt-4">
-                        <button
-                          onClick={createAccount}
-                          className="w-full bg-gradient-to-r from-pink-400 to-red-600 hover:from-pink-500 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
-                        >
-                          Setup FlowFit Account
-                        </button>
-                      </div>
+                      <button
+                        onClick={createAccount}
+                        className="w-full morphing-button !py-4 text-lg"
+                      >
+                        Setup FlowFit Account
+                      </button>
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <div className="text-gray-400">Loading your stats...</div>
+                    <div className="text-center py-12">
+                      <div className="cosmic-loader mx-auto mb-4"></div>
+                      <div className="text-gray-400 text-lg">Loading your stats...</div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
           )}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

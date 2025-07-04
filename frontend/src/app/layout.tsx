@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { FlowProvider } from '@/components/providers/FlowProvider'
+import FlowProvider from '@/components/providers/FlowProvider'
 import { Toaster } from 'react-hot-toast'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: 'The first verifiable fitness protocol on Flow that rewards users with tokens and NFTs for completing VRF-generated workout challenges.',
   keywords: ['fitness', 'blockchain', 'flow', 'gamification', 'crypto', 'rewards', 'NFT', 'VRF'],
   authors: [{ name: 'FlowFit Team' }],
+  metadataBase: new URL('https://flowfit.io'),
   openGraph: {
     title: 'FlowFit - Gamified Fitness with Crypto Rewards',
     description: 'Earn tokens and NFTs for completing workout challenges. Built on Flow blockchain.',
@@ -46,29 +47,49 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <FlowProvider>
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          <div className="min-h-screen">
             {children}
           </div>
           <Toaster 
             position="top-right"
+            gutter={8}
             toastOptions={{
+              duration: 4000,
               style: {
-                background: '#1e293b',
-                color: '#f1f5f9',
-                border: '1px solid #334155',
+                background: 'rgba(0, 0, 0, 0.8)',
+                color: '#ffffff',
+                border: '1px solid rgba(0, 212, 255, 0.3)',
+                borderRadius: '16px',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
               },
               success: {
                 iconTheme: {
-                  primary: '#22c55e',
-                  secondary: '#f1f5f9',
+                  primary: '#00ff88',
+                  secondary: '#ffffff',
+                },
+                style: {
+                  border: '1px solid rgba(0, 255, 136, 0.3)',
                 },
               },
               error: {
                 iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#f1f5f9',
+                  primary: '#ff006e',
+                  secondary: '#ffffff',
+                },
+                style: {
+                  border: '1px solid rgba(255, 0, 110, 0.3)',
+                },
+              },
+              loading: {
+                iconTheme: {
+                  primary: '#00d4ff',
+                  secondary: '#ffffff',
+                },
+                style: {
+                  border: '1px solid rgba(0, 212, 255, 0.3)',
                 },
               },
             }}
